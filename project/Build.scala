@@ -14,8 +14,8 @@ object FPinScalaBuild extends Build {
     organization := "manning",
     name         := "fpinscala-exercises",
     version      := "default",
-    scalaVersion := "2.9.1",
-    libraryDependencies += "org.scala-tools.testing" % "scalacheck_2.9.1" % "1.9",
+    scalaVersion := "2.9.2",
+    libraryDependencies += "org.scala-tools.testing" % "scalacheck_2.9.2" % "1.10.0",
     generate := Master.run(
       "project/master/fpinscala.book", 
       "src/main/scala/fpinscala", 
