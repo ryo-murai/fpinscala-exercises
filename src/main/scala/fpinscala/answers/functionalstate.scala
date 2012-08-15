@@ -96,11 +96,13 @@ object FunctionalStateHandling {
     */
   def flatMap[A,B](a: RNG => (A,RNG))(f: A => (RNG => (B,RNG))): RNG => (B,RNG) =
     sys.error("todo")
+}
 
+object GeneralizedFunctionalStateHandling {
   /**
     * EXERCISE 11
     */
-  def map2[S,A,B](a: S => (A,S))(f: A => B): S => (B,S) =
+  def map[S,A,B](a: S => (A,S))(f: A => B): S => (B,S) =
     sys.error("todo")
 
   /**
