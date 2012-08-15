@@ -23,7 +23,7 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     val (n,_) = positiveInt(rng)
 
     val (d,_) = nextDouble(rng)
-    d should be (n.toDouble/(Int.MaxValue-1))
+    d should be (n.toDouble/(Int.MaxValue))
     d should (be >= 0.0 and be < 1.0)
   }
 
@@ -32,7 +32,8 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     val (i,rng2) = positiveInt(rng1)
     val (d,_)    = nextDouble(rng2)
     
-    intDouble(rng1) should equal((i, d), _:RNG)
+    val ((a1, a2), _) = intDouble(rng1) 
+    (a1, a2) should equal(i, d)
   }
   
   "doubleInt" should """generate a pair of random Int and Double values""" in {
@@ -40,7 +41,8 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     val (d,rng2) = nextDouble(rng1)
     val (i,_)    = positiveInt(rng2)
     
-    doubleInt(rng1) should equal((d, i), _:RNG)
+    val ((a1, a2), _) = doubleInt(rng1)
+    (a1, a2) should equal(d, i)
   }
   
   "double3" should """generate a 3-tuple of random Double values""" in {
@@ -49,7 +51,8 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     val (d2,rng3) = nextDouble(rng2)
     val (d3,_)    = nextDouble(rng3)
 
-    double3(rng1) should equal((d1, d2, d3), _:RNG)
+    val ((a1, a2, a3), _) = double3(rng1)
+    (a1, a2, a3) should equal(d1, d2, d3)
   }
 
   "ints" should """generate a list containing the given number 
@@ -58,10 +61,11 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     val (i0,rng2) = positiveInt(rng1)
     val (i1,rng3) = positiveInt(rng2)
     val (i2,_) =    positiveInt(rng3)
+    val equivList = List(i0, i1, i2).sorted
     
-    ints(3)(rng1)  should equal(List(i0, i1, i2))
+    ints(3)(rng1)._1.sorted should equal(equivList)
 
-    ints(24)(rng2) should have ('length (24))
+    ints(24)(rng2)._1 should have ('size (24))
   }
 
   "units" should """return the same input and remains in the same state""" in {
@@ -78,7 +82,7 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     val rng1 = RNG.simple(1024)
     val (i,rng2) = positiveInt(rng1)
     
-    map(positiveInt)(_*2)(rng1) should be (i*2)
+    map(positiveInt(_))(_*2)(rng1)._1 should be (i*2)
   }
 
   "zeroToTen" should """generate an Int between 0 and 10""" in {
@@ -94,12 +98,8 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     val (i2,rng4) = nextDouble(rng3)
     val (d2, _  ) = positiveInt(rng4)
 
-    def zIntDouble = zip(r1 => positiveInt(r1), r2 => nextDouble(r2))
-    def zDoubleInt = zip(r1 => nextDouble(r1), r2 => positiveInt(r2))
-    
-    val rng = RNG.simple(1024)
-    zIntDouble(rng1) should be (i1, d1, _:RNG)
-    zDoubleInt(rng3) should be (i2, d2, _:RNG)
+    zip(r1 => positiveInt(r1), r2 => nextDouble(r2))(rng1)._1 should equal (i1, d1)
+    zip(r1 => nextDouble(r1), r2 => positiveInt(r2))(rng3)._1 should equal (i2, d2)
   }
 
   "sequence" should """do combining a List of transitions into 
@@ -108,12 +108,13 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     val expect = 1 :: 2 :: 3 :: Nil
 
     val rng = RNG.simple(1024)
-    sequence(source)(rng) should equal (expect, _:RNG)
+
+    sequence(source)(rng)._1 should equal(expect)
   }
 
   "flatMap" should """do generalized unlike sequence.""" in {
     val rng = RNG.simple(1024)
-    flatMap(unit(5))(a => r => (a*2,r))(rng) should equal (10, _:RNG)
+    flatMap(unit(5))(a => r => (a*2,r))(rng)._1 should equal(10)
   }
 }
 
@@ -122,10 +123,10 @@ class GeneralizedFunctionalStateHandlingSpec extends FlatSpec with ShouldMatcher
 
   "map[S,A](a: S => (A,S))(f: A => B): S => (B,S)" should 
     """do as a generalized map previously implemented""" in {
-    val s = "10"
-    def f(str: String) = (Integer.parseInt(str), str)
+    def f(str: String) = (Integer.parseInt(str), str+"0")
     
-    map(f)(_*3)(s) should be (30,s)
+    val tpl = map(f)(_*3)("10") 
+    tpl should equal (30,"100")
   }
 
 }
