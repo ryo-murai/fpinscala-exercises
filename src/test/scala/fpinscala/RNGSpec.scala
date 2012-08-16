@@ -112,21 +112,52 @@ class RNGSpec extends FlatSpec with ShouldMatchers {
     sequence(source)(rng)._1 should equal(expect)
   }
 
+  "exercise10" should """generate a function to return a list 
+      with ramdom number(up to ten) of double(0 to 1) values""" in {
+    val rng = RNG.simple(1024)
+    val (xs, _) = exercise10(rng)
+    xs.size should be <= 10
+    xs.forall(d => d >= 0 && d < 10) should be(true)
+  }
+  
   "flatMap" should """do generalized unlike sequence.""" in {
     val rng = RNG.simple(1024)
     flatMap(unit(5))(a => r => (a*2,r))(rng)._1 should equal(10)
+  }
+
+  "exercise10r" should """generate a function to return a list 
+      with ramdom number(up to ten) of double(0 to 1) values""" in {
+    val rng = RNG.simple(1024)
+    val (xs, _) = exercise10r(rng)
+    xs.size should be <= 10
+    xs.forall(d => d >= 0 && d < 10) should be(true)
   }
 }
 
 class GeneralizedFunctionalStateHandlingSpec extends FlatSpec with ShouldMatchers {
   import answers.GeneralizedFunctionalStateHandling._
 
+  private def atoi(s: String) = (Integer.parseInt(s), s+"0")
+  
   "map[S,A](a: S => (A,S))(f: A => B): S => (B,S)" should 
-    """do as a generalized map previously implemented""" in {
+    "do as a generalized map previously implemented" in {
     def f(str: String) = (Integer.parseInt(str), str+"0")
     
     val tpl = map(f)(_*3)("10") 
     tpl should equal (30,"100")
   }
 
+  "unit[S,A](a: A): S => (A,S)" should "generate function to make tuple2" in {
+    unit(8)("eight") should equal(8,"eight")
+  }
+
+  "zip[S,A,B](a: S => (A,S), b: S => (B,S)): S => ((A,B),S)" should
+    "generate a generalized zip" in {
+    zip(atoi, atoi)("2") should equal((2,20),"200")
+  }
+
+  "sequence[S,A](as: List[S => (A,S)]): S => (List[A], S)" should
+    "generate a generalized sequence" in {
+    sequence(List.fill(4)(atoi _))("1") should equal(List(1,10,100,1000), "10000")
+  }
 }

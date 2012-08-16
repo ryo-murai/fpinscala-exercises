@@ -24,7 +24,7 @@ object FunctionalStateHandling {
     * EXERCISE 2
     */
   def nextDouble(rng: RNG): (Double, RNG) =
-    positiveInt(rng) match { case (i, r) => (i.toDouble/(Int.MaxValue), r) }
+    positiveInt(rng) match { case (i, r) => (i.toDouble/Int.MaxValue, r) }
 
   /**
     * EXERCISE 3
@@ -85,13 +85,13 @@ object FunctionalStateHandling {
     * EXERCISE 8
     */
   def zip[A,B](a: RNG => (A,RNG), b: RNG => (B,RNG)): RNG => ((A,B),RNG) =
-    sys.error("todo")
+    r => a(r) match{case(a0,r0)=>b(r0) match{case(b0,r1)=>((a0,b0),r1)}}
 
   /**
     * EXERCISE 9
     */
   def sequence[A](as: List[RNG => (A,RNG)]): RNG => (List[A], RNG) =
-    sys.error("todo")
+    r => as.foldRight((List[A](), r))((a,b) => a(b._2) match {case(a0,r0)=>((a0::b._1),r0)})
 
   /**
     * EXERCISE 10 (hard): Write a function to first generate an integer between 0
@@ -100,14 +100,24 @@ object FunctionalStateHandling {
     * function you wrote with the function you just wrote for generating values 
     * between 0 and 10?
     */
-  def exercise10: RNG => (List[Int], RNG) =
-    sys.error("todo")
+  def exercise10: RNG => (List[Double], RNG) =
+    r => zeroToTen(r) match {
+      case(cnt,r1) => ints(cnt)(r1) match {
+        case(xs,r2)=>(xs.map(_.toDouble/Int.MaxValue), r2)
+      }
+    }
 
   /**
     * EXERCISE 11
     */
   def flatMap[A,B](a: RNG => (A,RNG))(f: A => (RNG => (B,RNG))): RNG => (B,RNG) =
-    sys.error("todo")
+    r => a(r) match {case(a0, r0)=>f(a0)(r0)}
+
+  /**
+    * EXERCISE 11
+    */
+  def exercise10r: RNG => (List[Double], RNG) = 
+    rng => flatMap(flatMap(zeroToTen)(ints)(_))(a => r => (a.map(_.toDouble/Int.MaxValue),r))(rng)
 }
 
 object GeneralizedFunctionalStateHandling {
@@ -115,10 +125,20 @@ object GeneralizedFunctionalStateHandling {
     * EXERCISE 11
     */
   def map[S,A,B](a: S => (A,S))(f: A => B): S => (B,S) =
-    sys.error("todo")
+    s => (a(s) match {case(a0, s0)=>(f(a0), s0)})
 
   /**
     * EXERCISE 12
     */
+  def unit[S,A](a: A): S => (A,S) =
+    s => (a, s)
 
+  def flatMap[S,A,B](a: S => (A,S))(f: A => (S => (B,S))): S => (B,S) =
+    s => a(s) match {case(a0, s0)=>f(a0)(s0)}
+
+  def zip[S,A,B](a: S => (A,S), b: S => (B,S)): S => ((A,B),S) =
+    s => a(s) match{case(a0,s0)=>b(s0) match{case(b0,r1)=>((a0,b0),r1)}}
+
+  def sequence[S,A](as: List[S => (A,S)]): S => (List[A], S) =
+    s => as.foldRight((List[A](), s))((a,b) => a(b._2) match {case(a0,s0)=>((b._1:+a0),s0)})
 }
