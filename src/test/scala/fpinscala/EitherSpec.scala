@@ -53,7 +53,7 @@ class EitherSpec extends FlatSpec with ShouldMatchers {
   }
 }
 
-class HandlingOptionSpec extends FlatSpec with ShouldMatchers {
+class HandlingEitherSpec extends FlatSpec with ShouldMatchers {
   import fpinscala.answers.ErrorHandling._
   
   "sequence" should """return the Left value if the original list contains Left even once, 
